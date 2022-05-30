@@ -65,6 +65,31 @@ func (*server) Sum(ctx context.Context , req *pb.SumRequest) (*pb.SumResponse, e
 	}
 	return res , nil
 }
+func (*server) FindMaximum (stream pb.CalculatorService_FindMaximumServer) error {
+	fmt.Printf("Find Maximum Server is being intiated \n")
+	maximum := int32(0)
+	for {
+		req , err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			log.Fatalf("The Error while reading the server stream at FindMaximum: %v \n"  , err)
+		}
+		number := req.GetNumber()
+		if number > maximum {
+			maximum = number
+			Senderr := stream.Send(&pb.FindMaximumResponse{
+				Maximum: maximum,
+			})
+			if Senderr != nil {
+				log.Fatalf("Erroe while sending data to the client: %v \n" , Senderr)
+			}
+		}
+	}
+}
+
+
 func main() {
 	fmt.Println("Calculator Server Intiated")
 	lis , err := net.Listen("tcp" , "0.0.0.0:50051")
